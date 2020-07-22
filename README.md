@@ -5,17 +5,23 @@ This model comes from Bird and Riordan, 1985, and it is going to use in parallel
 
 # How to use it
 
-
+```bash
 # upload the library
 from spectralIrradiance import SpectralIrradiance
-
+```
+```bash
 # create an object with default value of Ozone
 # precipitable water and aerosol optical depth
 current_irradiance = SpectralIrradiance()
+```
 
+```bash
 # give spectral irradiance at given SZA (degree), standard
 # pressure and day of the year
 my.get_irradiance(45, 1020, 180)
+```
 
+```bash
 # or plot
 my.plot_irradiance(45, 1020, 180)
+```
