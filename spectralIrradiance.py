@@ -12,6 +12,7 @@
 from math import exp, pi, cos, sin
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 try:
 
@@ -55,7 +56,10 @@ class SpectralIrradiance:
     # standard pressure at surface
     P0 = 1013.
 
-    def __init__(self, oZ = 0.28, preWater = 2., aers_opt_dep = 0.12):
+    lat_grid = [89.95 - i/10 for i in range(1800)]
+    lon_grid = [-179.95 + i/10 for i in range(3600)]
+
+    def __init__(self, oZ = 0.28, preWater = 2., aers_opt_dep = 0.12, lat=0, lon=0):
         """
         oZ : float
             ozone column in cm
@@ -67,7 +71,16 @@ class SpectralIrradiance:
             aerosol optical depth at 0.5 micron
             Note: from 0.01 (clean atm) to 0.4
              -> mean value is 0.1-0.15
+        
+        lat : float
+            latitude in degrees
+            (needed for cloud cover)
+
+        lon : float
+            longitude in degrees
+            (needed for cloud cover)
         """
+
         self.oZ = oZ
         self.preWater = preWater
         self.delta = aers_opt_dep
@@ -79,8 +92,22 @@ class SpectralIrradiance:
 
         self.wl = wl_list.data
 
+        self.lat = lat
+        self.lon = lon
+
+        lat_index = min(range(len(self.lat_grid)), key=lambda i: abs(self.lat_grid[i] - self.lat))
+        lon_index = min(range(len(self.lon_grid)), key=lambda i: abs(self.lon_grid[i] - self.lon))
+
         #if(np.any([len(self.E0), len(self.k_o), len(self.k_g), len(self.k_w)]) != 122):
         #    raise TypeError("Something gone wrong in external file dimension")
+        
+        # rows: lat
+        # columuns: lon
+        with open("cloud_cover/MODAL2_M_CLD_FR_2019-01-01_rgb_3600x1800_APR.CSV", mode='r') as csv_file:
+            data = np.array([i for i in csv.reader(csv_file, delimiter=",",
+										quoting=csv.QUOTE_NONNUMERIC)])
+
+        self.CF = data[lat_index, lon_index]
         
         print("***")
         print("Simple solar spectral irradiance model")
@@ -91,7 +118,8 @@ class SpectralIrradiance:
         print(" aerosol optical depth at 0.5 micron: {}".format(self.delta))
         print("***")
 
-    def get_irradiance(self, Z0, P, day):
+
+    def get_irradiance(self, Z0, P, day, cloud_cover):
 
         Z0 = Z0*pi/180.
                 
@@ -105,14 +133,20 @@ class SpectralIrradiance:
                 tau_a.append( exp(-self.delta*(i/0.5)**(-1.0274)*m(Z0)) )
             else:
                 tau_a.append( exp(-self.delta*(i/0.5)**(-1.2060)*m(Z0)) )
+        
+        if(cloud_cover):
+            cc_factor = [0.76 + 0.24*self.CF + 0.24*(1 - self.CF)*(i/0.49)**4 for i in self.wl]
+        else:
+            cc_factor = [1. for i in range(len(self.wl))] 
 
         # spectral power in W/m2/micron
 
-        spectralIrradiance = [es_dist(day)*i*j*k*l*m*n for i, j, k, l, m, n in zip(self.E0, tau_r, tau_o, tau_g, tau_w, tau_a)]
+        spectralIrradiance = [cc*es_dist(day)*i*j*k*l*m*n \
+        for cc, i, j, k, l, m, n in zip(cc_factor, self.E0, tau_r, tau_o, tau_g, tau_w, tau_a)]
         return spectralIrradiance
 
 
-    def plot_irradiance(self, Z0, P, day):
+    def plot_irradiance(self, Z0, P, day, cloud_cover):
 
         Z0 = Z0*pi/180.
                 
@@ -126,21 +160,30 @@ class SpectralIrradiance:
                 tau_a.append( exp(-self.delta*(i/0.5)**(-1.0274)*m(Z0)) )
             else:
                 tau_a.append( exp(-self.delta*(i/0.5)**(-1.2060)*m(Z0)) )
+        
+        if(cloud_cover):
+            cc_factor = [0.76 + 0.24*self.CF + 0.24*(1 - self.CF)*(i/0.49)**4 for i in self.wl]
+        else:
+            cc_factor = [1. for i in range(len(self.wl))] 
 
         # spectral power in W/m2/micron
 
-        spectralIrradiance = [es_dist(day)*i*j*k*l*m*n for i, j, k, l, m, n in zip(self.E0, tau_r, tau_o, tau_g, tau_w, tau_a)]
+        spectralIrradiance = [cc*es_dist(day)*i*j*k*l*m*n \
+        for cc, i, j, k, l, m, n in zip(cc_factor, self.E0, tau_r, tau_o, tau_g, tau_w, tau_a)]
 
-#plt.plot(wl, tau_r, label="tau_r")
-#plt.plot(wl, tau_o, label="tau_o")
-#plt.plot(wl, tau_g, label="tau_g")
-#plt.plot(wl, tau_w, label="tau_w")
+        #plt.plot(wl, tau_r, label="tau_r")
+        #plt.plot(wl, tau_o, label="tau_o")
+        #plt.plot(wl, tau_g, label="tau_g")
+        #plt.plot(wl, tau_w, label="tau_w")
 
         plt.plot(self.wl,spectralIrradiance) 
 
         plt.title("ozone: {} cm - pre_water: {} cm - aerosol opt: {} - SZA: {} - P: {} - day : {}".format(self.oZ, self.preWater, self.delta, Z0, P, day))
         plt.show()
 
-
+if __name__== "__main__":
+    curr_irr = SpectralIrradiance()
+    curr_irr.get_irradiance(0, 1014, 1, cloud_cover=True)
+    curr_irr.plot_irradiance(0, 1014, 1, cloud_cover=False)
 
 
