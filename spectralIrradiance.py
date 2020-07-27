@@ -85,7 +85,7 @@ class SpectralIrradiance:
     P0 = 1013.
 
     # current sub-division of external data
-    # from 
+    # from NASA NEO (https://neo.sci.gsfc.nasa.gov/view.php?datasetId=MODAL2_M_CLD_FR)
     lat_grid = [89.95 - i/10 for i in range(1800)]
     lon_grid = [-179.95 + i/10 for i in range(3600)]
 
