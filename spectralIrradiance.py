@@ -56,10 +56,12 @@ class SpectralIrradiance:
     # standard pressure at surface
     P0 = 1013.
 
+    # current sub-division of external data
+    # from 
     lat_grid = [89.95 - i/10 for i in range(1800)]
     lon_grid = [-179.95 + i/10 for i in range(3600)]
 
-    def __init__(self, oZ = 0.28, preWater = 2., aers_opt_dep = 0.12, lat=0, lon=0):
+    def __init__(self, oZ = 0.28, preWater = 2., aers_opt_dep = 0.12, lat=0, lon=0, cloud_cover=False):
         """
         oZ : float
             ozone column in cm
@@ -95,19 +97,23 @@ class SpectralIrradiance:
         self.lat = lat
         self.lon = lon
 
-        lat_index = min(range(len(self.lat_grid)), key=lambda i: abs(self.lat_grid[i] - self.lat))
-        lon_index = min(range(len(self.lon_grid)), key=lambda i: abs(self.lon_grid[i] - self.lon))
+        self.cloud_cover = cloud_cover
 
-        #if(np.any([len(self.E0), len(self.k_o), len(self.k_g), len(self.k_w)]) != 122):
-        #    raise TypeError("Something gone wrong in external file dimension")
-        
-        # rows: lat
-        # columuns: lon
-        with open("cloud_cover/MODAL2_M_CLD_FR_2019-01-01_rgb_3600x1800_APR.CSV", mode='r') as csv_file:
-            data = np.array([i for i in csv.reader(csv_file, delimiter=",",
-										quoting=csv.QUOTE_NONNUMERIC)])
+        if(self.cloud_cover):
 
-        self.CF = data[lat_index, lon_index]
+            lat_index = min(range(len(self.lat_grid)), key=lambda i: abs(self.lat_grid[i] - self.lat))
+            lon_index = min(range(len(self.lon_grid)), key=lambda i: abs(self.lon_grid[i] - self.lon))
+
+            #if (len(self.E0), len(self.k_o), len(self.k_g), len(self.k_w)])) == 122):
+            #    raise TypeError("Something gone wrong in external file dimension")
+            
+            # rows: lat
+            # columuns: lon
+            with open("cloud_cover/MODAL2_M_CLD_FR_2019-01-01_rgb_3600x1800_APR.CSV", mode='r') as csv_file:
+                data = np.array([i for i in csv.reader(csv_file, delimiter=",",
+                                            quoting=csv.QUOTE_NONNUMERIC)])
+
+            self.CF = data[lat_index, lon_index]
         
         print("***")
         print("Simple solar spectral irradiance model")
@@ -119,7 +125,7 @@ class SpectralIrradiance:
         print("***")
 
 
-    def get_irradiance(self, Z0, P, day, cloud_cover):
+    def get_irradiance(self, Z0, P, day):
 
         Z0 = Z0*pi/180.
                 
@@ -134,7 +140,7 @@ class SpectralIrradiance:
             else:
                 tau_a.append( exp(-self.delta*(i/0.5)**(-1.2060)*m(Z0)) )
         
-        if(cloud_cover):
+        if(self.cloud_cover):
             cc_factor = [0.76 + 0.24*self.CF + 0.24*(1 - self.CF)*(i/0.49)**4 for i in self.wl]
         else:
             cc_factor = [1. for i in range(len(self.wl))] 
@@ -146,7 +152,7 @@ class SpectralIrradiance:
         return spectralIrradiance
 
 
-    def plot_irradiance(self, Z0, P, day, cloud_cover):
+    def plot_irradiance(self, Z0, P, day):
 
         Z0 = Z0*pi/180.
                 
@@ -161,7 +167,7 @@ class SpectralIrradiance:
             else:
                 tau_a.append( exp(-self.delta*(i/0.5)**(-1.2060)*m(Z0)) )
         
-        if(cloud_cover):
+        if(self.cloud_cover):
             cc_factor = [0.76 + 0.24*self.CF + 0.24*(1 - self.CF)*(i/0.49)**4 for i in self.wl]
         else:
             cc_factor = [1. for i in range(len(self.wl))] 
@@ -183,7 +189,7 @@ class SpectralIrradiance:
 
 if __name__== "__main__":
     curr_irr = SpectralIrradiance()
-    curr_irr.get_irradiance(0, 1014, 1, cloud_cover=True)
-    curr_irr.plot_irradiance(0, 1014, 1, cloud_cover=False)
+    curr_irr.get_irradiance(0, 1014, 1)
+    curr_irr.plot_irradiance(0, 1014, 1)
 
 
