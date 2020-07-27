@@ -4,6 +4,8 @@
 # BIRD ET AL 1986: SIMPLE SOLAR SPECTRAL MODEL
 # DIRECT PART.
 
+# CLOUD COVER CORRECTION FROM Jasmine et al, 1998
+
 # FILE NEEDED: extra_irr, ozone_abs, unif_abs,
 # water_abs, wl_list
 
