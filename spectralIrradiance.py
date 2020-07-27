@@ -146,10 +146,11 @@ class SpectralIrradiance:
             cc_factor = [0.76 + 0.24*self.CF + 0.24*(1 - self.CF)*(i/0.49)**4 for i in self.wl]
         else:
             cc_factor = [1. for i in range(len(self.wl))] 
+            self.CF = 1.
 
         # spectral power in W/m2/micron
 
-        spectralIrradiance = [cc*es_dist(day)*i*j*k*l*m*n \
+        spectralIrradiance = [self.CF*cc*es_dist(day)*i*j*k*l*m*n \
         for cc, i, j, k, l, m, n in zip(cc_factor, self.E0, tau_r, tau_o, tau_g, tau_w, tau_a)]
         return spectralIrradiance
 
@@ -172,11 +173,12 @@ class SpectralIrradiance:
         if(self.cloud_cover):
             cc_factor = [0.76 + 0.24*self.CF + 0.24*(1 - self.CF)*(i/0.49)**4 for i in self.wl]
         else:
-            cc_factor = [1. for i in range(len(self.wl))] 
+            cc_factor = [1. for i in range(len(self.wl))]
+            self.CF = 1.
 
         # spectral power in W/m2/micron
 
-        spectralIrradiance = [cc*es_dist(day)*i*j*k*l*m*n \
+        spectralIrradiance = [self.CF*cc*es_dist(day)*i*j*k*l*m*n \
         for cc, i, j, k, l, m, n in zip(cc_factor, self.E0, tau_r, tau_o, tau_g, tau_w, tau_a)]
 
         #plt.plot(wl, tau_r, label="tau_r")
