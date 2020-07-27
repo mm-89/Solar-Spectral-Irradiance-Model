@@ -5,6 +5,7 @@
 # DIRECT PART.
 
 # CLOUD COVER CORRECTION FROM Jasmine et al, 1998
+# to validate here
 
 # FILE NEEDED: extra_irr, ozone_abs, unif_abs,
 # water_abs, wl_list
@@ -31,21 +32,46 @@ except:
 # FUNCTIONS
 
 def m_p(Z0, P0, P):
+    """
+    Pressure-corrected 
+    relative air mass.
+    """
     return m(Z0) * P/P0
 
 def m_0(Z0):
+    """
+    Relative air-mass
+    for ozone.
+    
+    From: Paltridge and Platt, 1976
+    """
     return 35./( 1224. * cos(Z0)**2  + 1 )**0.5
 
 def m(Z0):
+    """
+    Relative air-mass.
+
+    From: Kasten, 1966
+    """
     return 1/( cos(Z0) + 0.15*(93.885 - Z0)**(-1.253) )
 
 def day_angle(day):
     """
-    day from 1 to 365
+    Function that converts 
+    day in a year in radiant
+    -----------------
+    Parameter:
+    day : int
+        from 1 to 365
     """
     return 2*pi*( day - 1 )/365
 
 def es_dist(day):
+    """
+    Correction factor for Eath-Sun distance.
+
+    From: Spencer, 1971
+    """
     return 1.00011 + \
             0.034221*cos(day_angle(day)) + \
             0.00128*sin(day_angle(day)) + \
@@ -89,11 +115,19 @@ class SpectralIrradiance:
         self.preWater = preWater
         self.delta = aers_opt_dep
 
+        # extra terrestrial irradiance
         self.E0 = extra_irr.data
+
+        # ozone absoption coefficients
         self.k_o = ozone_abs.data
+
+        # uniform mixed gases absoption coefficients
         self.k_g = unif_abs.data
+
+        # water vapour absoption coefficients
         self.k_w = water_abs.data
 
+        # wavelenghts used in this model
         self.wl = wl_list.data
 
         self.lat = lat
@@ -192,7 +226,7 @@ class SpectralIrradiance:
         plt.show()
 
 if __name__== "__main__":
-    curr_irr = SpectralIrradiance()
+    curr_irr = SpectralIrradiance(cloud_cover=True)
     curr_irr.get_irradiance(0, 1014, 1)
     curr_irr.plot_irradiance(0, 1014, 1)
 
