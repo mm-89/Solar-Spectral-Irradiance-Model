@@ -18,10 +18,10 @@ current_irradiance = SpectralIrradiance()
 ```bash
 # give spectral irradiance at given SZA (degree), standard
 # pressure and day of the year
-my.get_irradiance(45, 1020, 180)
+current_irradiance.get_irradiance(45, 1020, 180)
 ```
 
 ```bash
 # or plot
-my.plot_irradiance(45, 1020, 180)
+current_irradiance.plot_irradiance(45, 1020, 180)
 ```
